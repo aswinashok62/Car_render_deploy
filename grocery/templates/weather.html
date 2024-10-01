@@ -1,0 +1,128 @@
+{% extends 'navigation.html' %}
+
+{% block body %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Car Rental & Weather Advice</title>
+    <style>
+        /* Set the background image */
+        body {
+            background-image: url('https://images.pexels.com/photos/209831/pexels-photo-209831.jpeg?auto=compress&cs=tinysrgb&w=600');
+            background-size: cover;
+            background-position: center;
+            font-family: Arial, sans-serif;
+            color: white;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Styling the main container */
+        .container {
+            background: rgba(0, 0, 0, 0.7); /* Semi-transparent background */
+            padding: 20px;
+            margin: 100px auto;
+            width: 500px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            text-align: center;
+        }
+
+        /* Styling the header */
+        h1 {
+            font-size: 36px;
+            margin-bottom: 20px;
+        }
+
+        /* Styling the form */
+        form {
+            margin-bottom: 20px;
+        }
+
+        input[type="text"] {
+            padding: 10px;
+            width: 70%;
+            border: none;
+            border-radius: 5px;
+            margin-right: 10px;
+            font-size: 16px;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            background-color: #4CAF50;
+            color: white;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        /* Weather and recommendation display */
+        .weather-info {
+            font-size: 18px;
+            line-height: 1.6;
+        }
+
+        .car-advice {
+            margin-top: 20px;
+            font-size: 16px;
+            color: #f0e68c;
+            font-weight: bold;
+        }
+
+        .error {
+            color: #ff6347;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Check Weather of the place you are planing to travel</h1>
+        
+        <form method="post">
+            {% csrf_token %}
+            <input type="text" name="city" placeholder="Enter destination city" required>
+            <button type="submit">Check Weather</button>
+        </form>
+
+        {% if weather_data %}
+            <h2>Weather Information for {{ weather_data.city }}</h2>
+            <div class="weather-info">
+                {% if weather_data.error %}
+                    <p class="error">{{ weather_data.error }}</p>
+                {% else %}
+                    <p>Temperature: {{ weather_data.temperature }} °C</p>
+                    <p>Weather: {{ weather_data.weather }}</p>
+                    <p>Humidity: {{ weather_data.humidity }}%</p>
+
+                    <div class="car-advice">
+                        <h3>Car Rental Advice</h3>
+                        {% if weather_data.temperature < 10 %}
+                            <p>It's cold in {{ weather_data.city }}. You might want to rent a car with heating features, like an SUV or a luxury sedan, for a comfortable ride.</p>
+                        {% elif weather_data.temperature >= 10 and weather_data.temperature <= 25 %}
+                            <p>The weather is pleasant in {{ weather_data.city }}. A standard or compact car should be sufficient for a comfortable ride.</p>
+                        {% elif weather_data.temperature > 25 %}
+                            <p>It's warm in {{ weather_data.city }}. Consider renting a car with good air conditioning, like a midsize sedan or an electric car for a cool and eco-friendly ride.</p>
+                        {% endif %}
+                        
+                        {% if 'rain' in weather_data.weather|lower %}
+                            <p>It seems rainy in {{ weather_data.city }}. An all-wheel drive vehicle or a car with good traction is recommended for safe driving.</p>
+                        {% elif 'snow' in weather_data.weather|lower %}
+                            <p>Snowy conditions in {{ weather_data.city }}! A 4x4 or SUV with winter tires is highly recommended for safe and comfortable driving.</p>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</body>
+</html>
+
+{% endblock %}

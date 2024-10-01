@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chatbot</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f7fa;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start; /* Adjusted to flex-start to move content below the nav */
+            height: 100vh; /* Full viewport height */
+            padding: 20px;
+        }
+
+        nav {
+            width: 100%;
+            background-color: #fff;
+            padding: 10px 20px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: flex-start;
+            position: fixed; /* Fixed navigation at the top */
+            top: 0;
+            left: 0;
+            z-index: 1000;
+        }
+
+        .nav-item a {
+            color: rgb(0, 0, 0);
+            text-decoration: none;
+            font-size: 18px;
+            margin-right: 20px;
+            display: flex;
+            align-items: center;
+        }
+
+        .nav-item ion-icon {
+            margin-right: 8px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-top: 70px; /* Added margin-top to push content below the nav */
+            margin-bottom: 20px;
+        }
+
+        #chatbox {
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            height: 400px;
+            width: 100%; /* Full width */
+            max-width: 600px; /* Limit max width */
+            overflow-y: scroll;
+            padding: 15px;
+            background-color: #ffffff;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            margin-bottom: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px; /* Space between messages */
+        }
+
+        .message {
+            padding: 10px 15px;
+            border-radius: 20px;
+            max-width: 70%;
+            word-wrap: break-word; /* Allow long words to wrap */
+        }
+
+        .user {
+            background-color: #007bff; /* Bootstrap primary color */
+            color: white;
+            align-self: flex-end; /* Align user message to the right */
+            margin-left: auto; /* Align user message to the right */
+        }
+
+        .bot {
+            background-color: #e1e1e1;
+            color: black;
+            align-self: flex-start; /* Align bot message to the left */
+        }
+
+        #inputArea {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            max-width: 600px; /* Limit max width */
+            margin-top: 10px; /* Space above input area */
+        }
+
+        #userInput {
+            width: 80%;
+            padding: 12px; /* Increased padding for a more comfortable feel */
+            border: 1px solid #ccc;
+            border-radius: 20px;
+            outline: none;
+            font-size: 16px; /* Increased font size */
+            transition: border 0.3s;
+        }
+
+        #userInput:focus {
+            border-color: #007bff; /* Change border color on focus */
+            box-shadow: 0 0 5px rgba(0, 123, 255, 0.5); /* Soft glow effect */
+        }
+
+        #sendBtn {
+            width: 18%;
+            padding: 12px; /* Increased padding */
+            background-color: #000; /* Black background */
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 16px; /* Increased font size */
+            transition: background-color 0.3s, transform 0.2s, box-shadow 0.3s; /* Added transition for styling */
+        }
+
+        #sendBtn:hover {
+            background-color: #333; /* Darker black on hover */
+            transform: scale(1.05); /* Slight scale effect */
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* Shadow effect */
+        }
+
+        #sendBtn:active {
+            transform: scale(0.95); /* Slight scale effect when clicked */
+        }
+    </style>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+            document.getElementById('sendBtn').addEventListener('click', function() {
+                const userInput = document.getElementById('userInput').value;
+                if (userInput) {
+                    const chatbox = document.getElementById('chatbox');
+                    // Add user message to chatbox
+                    chatbox.innerHTML += `<div class="message user">User: ${userInput}</div>`;
+                    document.getElementById('userInput').value = '';
+
+                    // Send the user message to the server
+                    fetch('/chat/', {  // Ensure this URL matches the URL pattern in your urls.py
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                            'X-CSRFToken': csrftoken,  // Include the CSRF token if applicable
+                        },
+                        body: 'message=' + encodeURIComponent(userInput),
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.response) {
+                            chatbox.innerHTML += `<div class="message bot">Bot: ${data.response}</div>`;
+                            chatbox.scrollTop = chatbox.scrollHeight; // Scroll to the bottom
+                        } else {
+                            chatbox.innerHTML += `<div class="message bot">Bot: No response from the server</div>`;
+                        }
+                    })
+                    .catch(error => console.error('Error:', error));
+                }
+            });
+        });
+    </script>
+</head>
+<body>
+    <nav>
+        <li class="nav-item">
+            <a class="nav-link" href="{% url 'admin_home' %}" style="color:rgb(0, 0, 0)">
+                <ion-icon style="margin-right:0px" name="home-sharp"></ion-icon>Home
+            </a>
+        </li>
+    </nav>
+    <h1>Chatbot</h1>
+    <div id="chatbox"></div>
+    <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+    <div id="inputArea">
+        <input type="text" id="userInput" placeholder="Type your message here..." required>
+        <button id="sendBtn">Send</button>
+    </div>
+</body>
+</html>
