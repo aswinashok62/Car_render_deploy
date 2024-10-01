@@ -33,7 +33,7 @@ DEBUG = True
 
 
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['car-render-deploy.onrender.com', 'localhost', '127.0.0.1']
 
 LOGIN_REDIRECT_URL = '/supplier/admin-requests/'
 
